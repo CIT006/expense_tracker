@@ -10,14 +10,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../config/auth.php';
 require_once __DIR__ . '/../models/Transaction.php';
 
 try {
     $database = new Database();
     $db = $database->getConnection();
+    $user = requireAuthenticatedUser();
     $transaction = new Transaction($db);
 
-    $user_id = isset($_GET['user_id']) ? intval($_GET['user_id']) : 1;
+    $user_id = (int)$user['id'];
     $filter = isset($_GET['filter']) ? $_GET['filter'] : 'month';
     $selectedMonth = isset($_GET['month']) && $_GET['month'] !== '' ? intval($_GET['month']) : null;
     $selectedYear = isset($_GET['year']) && $_GET['year'] !== '' ? intval($_GET['year']) : null;

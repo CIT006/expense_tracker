@@ -121,6 +121,9 @@
     .logo-text { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
     .logo-text span { color: var(--accent2); }
     .header-right { display: flex; align-items: center; gap: 12px; }
+    .user-badge { color: var(--muted); font-size: 12px; margin-right: 4px; }
+    .logout-btn { color: var(--muted); background: transparent; border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; font-size: 12px; cursor: pointer; }
+    .logout-btn:hover { color: var(--red); border-color: var(--red); }
     .badge {
       background: rgba(124,111,247,0.15);
       border: 1px solid rgba(124,111,247,0.3);
@@ -601,13 +604,14 @@
   <!-- HEADER -->
   <header>
     <div class="logo">
-      <div class="logo-icon">🧠</div>
+      <img class="logo-icon" src="image/logo1.png" alt="FinMind logo">
       <div>
         <div class="logo-text">Fin<span>Mind</span></div>
         <div style="font-size:11px;color:var(--muted);letter-spacing:1px;">AI FINANCIAL TRACKER</div>
       </div>
     </div>
     <div class="header-right">
+      <div id="userInfo" class="user-badge"></div>
       <div class="badge">AI POWERED</div>
       <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="เปลี่ยนธีม">🌙</button>
     </div>
@@ -825,7 +829,8 @@
 //  CONFIG
 // ═══════════════════════════════════════════════════
 const API_BASE = 'api';
-const USER_ID = 1;
+let currentUser = null;
+let USER_ID = 0;
 
 let categories = [];
 let transactions = [];
@@ -848,12 +853,41 @@ const MONTH_NAMES = {
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('txDate').valueAsDate = new Date();
   initYearSelects();
-  loadCategories();
-  loadDashboard();
   // โหลด theme จาก localStorage
   const saved = localStorage.getItem('finmind-theme');
   if (saved === 'light') { isDarkTheme = false; applyTheme(); }
+  checkAuth();
 });
+
+async function checkAuth() {
+  try {
+    const result = await api('/auth.php?action=check');
+    if (!result.logged_in || !result.user) {
+      window.location.href = 'login.php';
+      return;
+    }
+    currentUser = result.user;
+    USER_ID = Number(currentUser.id);
+    updateUserInfo();
+    await loadCategories();
+    await loadDashboard();
+  } catch (error) {
+    window.location.href = 'login.php';
+  }
+}
+
+function updateUserInfo() {
+  const userInfo = document.getElementById('userInfo');
+  if (!userInfo || !currentUser) return;
+  userInfo.classList.remove('hidden');
+  userInfo.innerHTML = `<span>สวัสดี,  ${currentUser.full_name || currentUser.username}</span>
+    <button onclick="logout()" class="logout-btn ml-2" title="ออกจากระบบ">ออกจากระบบ</button>`;
+}
+
+async function logout() {
+  await api('/auth.php?action=logout', { method: 'POST' });
+  window.location.href = 'login.php';
+}
 
 function initYearSelects() {
   const cur = new Date().getFullYear();
@@ -899,7 +933,7 @@ async function loadDashboard() {
   document.getElementById('dash-loading').style.display = 'flex';
   document.getElementById('dash-content').style.opacity = '0.3';
 
-  let qs = `?user_id=${USER_ID}&filter=${currentFilter}`;
+  let qs = `?filter=${currentFilter}`;
   if (selMonth && selYear) qs += `&month=${selMonth}&year=${selYear}`;
   else if (selYear) qs += `&year=${selYear}`;
 
@@ -1060,7 +1094,7 @@ function updateFilterLabel() {
 // ═══════════════════════════════════════════════════
 async function loadTransactions() {
   document.getElementById('transactionList').innerHTML = '<div class="loading-overlay"><div class="big-spinner"></div></div>';
-  const res = await api(`/transactions.php?user_id=${USER_ID}&limit=500`);
+  const res = await api('/transactions.php?limit=500');
   if (res.success) {
     transactions = res.data;
     renderTransactions();
@@ -1117,7 +1151,7 @@ function resetTxFilter() {
 
 async function deleteTransaction(id) {
   if (!confirm('ต้องการลบรายการนี้ใช่ไหม?')) return;
-  const res = await api(`/transactions.php?user_id=${USER_ID}&id=${id}`, { method: 'DELETE' });
+  const res = await api(`/transactions.php?id=${id}`, { method: 'DELETE' });
   if (res.success) {
     showToast('ลบรายการสำเร็จ');
     loadTransactions();
@@ -1161,7 +1195,7 @@ async function submitTransaction() {
 
   const res = await api('/transactions.php', {
     method: 'POST',
-    body: JSON.stringify({ user_id: USER_ID, type, category_id: parseInt(catId), amount, description: desc, transaction_date: date })
+    body: JSON.stringify({ type, category_id: parseInt(catId), amount, description: desc, transaction_date: date })
   });
 
   btn.disabled = false;

@@ -10,10 +10,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../config/auth.php';
 
 try {
     $database = new Database();
     $db = $database->getConnection();
+    requireAuthenticatedUser();
     
     $query = "SELECT * FROM categories ORDER BY type, name";
     $stmt = $db->prepare($query);
