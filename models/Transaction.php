@@ -28,7 +28,11 @@ class Transaction {
                 ':description'      => mb_substr(strip_tags($data['description']), 0, 500),
                 ':transaction_date' => $data['transaction_date'],
             ]);
-            return ['success' => true, 'id' => (int)$this->conn->lastInsertId()];
+            $id = (int)$this->conn->lastInsertId();
+            $created = $this->readOne($id, (int)($data['user_id'] ?? 0));
+            return $created
+                ? ['success' => true, 'id' => $id, 'data' => $created]
+                : ['success' => false, 'message' => 'บันทึกไม่สำเร็จ กรุณาลองใหม่อีกครั้ง'];
         } catch (PDOException $e) {
             return ['success' => false, 'message' => $e->getMessage()];
         }
@@ -88,8 +92,7 @@ class Transaction {
             $stmt = $this->conn->prepare(
                 "UPDATE {$this->table}
                  SET type = :type, category_id = :category_id, amount = :amount,
-                     description = :description, transaction_date = :transaction_date,
-                     updated_at = NOW()
+                     description = :description, transaction_date = :transaction_date
                  WHERE id = :id AND user_id = :user_id"
             );
             $stmt->execute([
@@ -101,8 +104,9 @@ class Transaction {
                 ':description'      => mb_substr(strip_tags($data['description']), 0, 500),
                 ':transaction_date' => $data['transaction_date'],
             ]);
-            return $stmt->rowCount() > 0
-                ? ['success' => true]
+            $updated = $this->readOne((int)$data['id'], (int)$data['user_id']);
+            return $updated
+                ? ['success' => true, 'data' => $updated]
                 : ['success' => false, 'message' => 'ไม่พบรายการหรือไม่มีสิทธิ์แก้ไข'];
         } catch (PDOException $e) {
             return ['success' => false, 'message' => $e->getMessage()];
@@ -116,9 +120,11 @@ class Transaction {
                 "DELETE FROM {$this->table} WHERE id = :id AND user_id = :user_id"
             );
             $stmt->execute([':id' => $id, ':user_id' => $user_id]);
-            return $stmt->rowCount() > 0
+            $check = $this->conn->prepare("SELECT id FROM {$this->table} WHERE id = :id AND user_id = :user_id LIMIT 1");
+            $check->execute([':id' => $id, ':user_id' => $user_id]);
+            return !$check->fetch()
                 ? ['success' => true]
-                : ['success' => false, 'message' => 'ไม่พบรายการหรือไม่มีสิทธิ์ลบ'];
+                : ['success' => false, 'message' => 'ไม่สามารถลบรายการได้'];
         } catch (PDOException $e) {
             return ['success' => false, 'message' => $e->getMessage()];
         }

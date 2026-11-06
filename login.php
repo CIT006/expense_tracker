@@ -11,77 +11,53 @@ if (getAuthenticatedUser()) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>เข้าสู่ระบบ | AI Dashboard การเงิน</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/kanit@4.5.0/index.css">
-    <style>
-        body {
-            font-family: Kanit, sans-serif;
-        }
-
-        .login-bg {
-            background: linear-gradient(135deg, #312e81, #7c3aed 55%, #db2777);
-        }
-    </style>
+    <title>เข้าสู่ระบบ | MoneyTrack</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 
-<body class="login-bg min-h-screen flex items-center justify-center p-4">
-    <main class="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8">
-        <div class="text-center mb-8">
-            <img class="logo-icon" src="image/logo1.png" alt="FinMind logo" style="width: 80px; height: 80px; margin: 0 auto;">
-            <h1 class="text-2xl font-bold text-gray-800">AI Dashboard การเงิน</h1>
-            <p id="formDescription" class="text-gray-500 mt-2">เข้าสู่ระบบเพื่อจัดการข้อมูลของคุณ</p>
+<body class="auth-page">
+    <main class="auth-card">
+        <div class="auth-brand">
+            <img src="image/moneytrack-logo.svg" alt="MoneyTrack logo">
+            <h1>MoneyTrack</h1>
+            <p id="formDescription">เข้าสู่ระบบเพื่อจัดการข้อมูลของคุณ</p>
         </div>
-        <form id="loginForm" class="space-y-5">
-            <div>
-                <label for="identity" class="block text-gray-700 font-medium mb-2">ชื่อผู้ใช้หรืออีเมล</label>
-                <input id="identity" type="text" autocomplete="username" required
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    placeholder="กรอกชื่อผู้ใช้หรืออีเมล">
+        <form id="loginForm" class="auth-form">
+            <div class="auth-field">
+                <label for="identity">ชื่อผู้ใช้หรืออีเมล</label>
+                <input id="identity" type="text" autocomplete="username" required placeholder="กรอกชื่อผู้ใช้หรืออีเมล">
             </div>
-            <div>
-                <label for="password" class="block text-gray-700 font-medium mb-2">รหัสผ่าน</label>
-                <input id="password" type="password" autocomplete="current-password" required
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    placeholder="กรอกรหัสผ่าน">
+            <div class="auth-field">
+                <label for="password">รหัสผ่าน</label>
+                <input id="password" type="password" autocomplete="current-password" required placeholder="กรอกรหัสผ่าน">
             </div>
-            <p id="errorMessage" class="hidden text-red-600 text-sm"></p>
-            <button id="loginButton" type="submit"
-                class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-lg transition">เข้าสู่ระบบ</button>
+            <p id="errorMessage" class="auth-error hidden"></p>
+            <button id="loginButton" class="auth-submit" type="submit">เข้าสู่ระบบ</button>
         </form>
-        <form id="registerForm" class="space-y-5 hidden">
-            <div>
-                <label for="registerUsername" class="block text-gray-700 font-medium mb-2">ชื่อผู้ใช้</label>
+        <form id="registerForm" class="auth-form hidden">
+            <div class="auth-field">
+                <label for="registerUsername">ชื่อผู้ใช้</label>
                 <input id="registerUsername" type="text" autocomplete="username" minlength="3" maxlength="50" required
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     placeholder="ภาษาอังกฤษ ตัวเลข หรือ _">
             </div>
-            <div>
-                <label for="registerEmail" class="block text-gray-700 font-medium mb-2">อีเมล</label>
+            <div class="auth-field">
+                <label for="registerEmail">อีเมล</label>
                 <input id="registerEmail" type="email" autocomplete="email" maxlength="100" required
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     placeholder="you@example.com">
             </div>
-            <div>
-                <label for="registerFullName" class="block text-gray-700 font-medium mb-2">ชื่อ-นามสกุล <span
-                        class="text-gray-400">(ไม่บังคับ)</span></label>
-                <input id="registerFullName" type="text" autocomplete="name" maxlength="100"
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    placeholder="ชื่อที่ใช้แสดง">
+            <div class="auth-field">
+                <label for="registerFullName">ชื่อ-นามสกุล <span>(ไม่บังคับ)</span></label>
+                <input id="registerFullName" type="text" autocomplete="name" maxlength="100" placeholder="ชื่อที่ใช้แสดง">
             </div>
-            <div>
-                <label for="registerPassword" class="block text-gray-700 font-medium mb-2">รหัสผ่าน</label>
+            <div class="auth-field">
+                <label for="registerPassword">รหัสผ่าน</label>
                 <input id="registerPassword" type="password" autocomplete="new-password" minlength="6" maxlength="255"
-                    required
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    placeholder="อย่างน้อย 6 ตัวอักษร">
+                    required placeholder="อย่างน้อย 6 ตัวอักษร">
             </div>
-            <p id="registerErrorMessage" class="hidden text-red-600 text-sm"></p>
-            <button id="registerButton" type="submit"
-                class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-lg transition">สมัครสมาชิก</button>
+            <p id="registerErrorMessage" class="auth-error hidden"></p>
+            <button id="registerButton" class="auth-submit" type="submit">สมัครสมาชิก</button>
         </form>
-        <button id="switchAuthButton" type="button"
-            class="w-full mt-5 text-purple-600 hover:text-purple-800 text-sm">ยังไม่มีบัญชี? สมัครสมาชิก</button>
+        <button id="switchAuthButton" class="auth-switch" type="button">ยังไม่มีบัญชี? สมัครสมาชิก</button>
     </main>
     <script>
         let registerMode = false;
